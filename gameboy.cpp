@@ -6,8 +6,31 @@
 
 using namespace std;
 
-int main(){
+//from class INCORRECT
+unsigned char memory[]={0x06,17,0xe,0x16,0x1,0x78,0xb9,0xca,0x15,0x00,0xda,0x15,0x00,0x14,0x78,0x91,0x47,0xc3,0x06,0x00,0x76};
+
+char rom[]={0x06,0x06,0x3e,0x00,0x80,0x05,0xc2,0x04,0x00,0x76};
+
+unsigned char memoryread(int address)
+{
+	return rom[address];
+}
+
+void memorywrite(int address, unsigned char value)
+{}
 
 
+int main()
+{
+	Z80* z80 = new Z80(memoryread,memorywrite);
+	z80->reset();
+	z80->PC=0;
+	cout<< "A: "<< z80->A<< " B: "<< z80->B<< " C: "<<z80->C << " D: "<<z80->D <<endl;
+
+	while(!z80->halted){
+		z80->doInstruction();
+		cout<<"A: "<< z80->A<< " B: "<< z80->B<< " C: "<<z80->C << " D: "<<z80->D <<endl;
+	}
+	
 	return 0;
 }
