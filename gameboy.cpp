@@ -3,6 +3,8 @@
 #include <iostream>
 #include <fstream>
 
+
+
 #include <QtGui>
 
 using namespace std;
@@ -20,12 +22,12 @@ unsigned char memoryread(int address)
 void memorywrite(int address, unsigned char value)
 {}
 
+extern QApplication* app;
 
-int main()
+int main(int argc, char** argv)
 {
-	
+	setup(argc,argv);
 
-	
 	ifstream romfile("testrom.gb", ios::in|ios::binary|ios::ate);
     streampos size = romfile.tellg();
     rom = new char[size]; //ERROR
@@ -44,5 +46,6 @@ int main()
 		cout<<"A: "<< z80->A<< " B: "<< z80->B<< " C: "<<z80->C << " D: "<<z80->D <<endl;
 	}
 
+	app->exec();
 	return 0;
 }
