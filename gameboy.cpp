@@ -33,6 +33,7 @@ int main(int argc, char** argv)
 	setup(argc,argv);
 
 	//Load the rom from file
+	//PART1
 	ifstream romfile("testrom.gb", ios::in|ios::binary|ios::ate);
     streampos size = romfile.tellg();
     rom = new char[size]; //ERROR
@@ -42,6 +43,7 @@ int main(int argc, char** argv)
     romfile.close();
 
     //Read screendump into graphicsRAM
+    //PART2
     int n;
 	ifstream vidfile("screendump.txt",ios::in);
 	for(int i=0; i<8192; i++){
@@ -59,18 +61,42 @@ int main(int argc, char** argv)
     vidfile >> palette[2];
     vidfile >> palette[3];
 
+    //for game boy screen pixel 1x1
+    int x=1,y=1;
+    scrollx = 10, scrolly = 10; //some ammount
+    int tilex = x/8, tiley = y/8;
+    int tileposition = tiley * 32 + tilex;
+    int tileindex, tileaddress;
+    if (tilemap){ //tilemap1
+    	tileindex = graphicsRAM[0x1c00+tileposition];
+    	tileaddress = tileindex * 16;
+    }
+    else { //tilemap0
+    	tileindex = graphicsRAM[0x1800+tileposition];
+    	if (tileindex >= 128)
+    		tileaddress = tileindex-256;
+    	else
+    		tileaddress = tileindex * 16 + 0x1000;
+    }
+
+    int xoffset =  x%8, yoffset = y%8; //should use &
+    unsigned char row0 = graphicsRAM[tileaddress + yoffset*2];
+    unsigned char row1 = graphicsRAM[tileaddress + yoffset*2 + 1];
+
+
+
 
     //create new processor
-	Z80* z80 = new Z80(memoryread,memorywrite);
-	z80->reset();
-	//  z80->PC=0;
-	cout<< "A: "<< z80->A<< " B: "<< z80->B<< " C: "<<z80->C << " D: "<<z80->D <<endl;
-
-	while(!z80->halted){
-		//run instructions
-		z80->doInstruction();
-		cout<<"A: "<< z80->A<< " B: "<< z80->B<< " C: "<<z80->C << " D: "<<z80->D <<endl;
-	}
+    //PART1
+	// Z80* z80 = new Z80(memoryread,memorywrite);
+	// z80->reset();
+	// //  z80->PC=0;
+	// cout<< "A: "<< z80->A<< " B: "<< z80->B<< " C: "<<z80->C << " D: "<<z80->D <<endl;
+	// while(!z80->halted){
+	// 	//run instructions
+	// 	z80->doInstruction();
+	// 	cout<<"A: "<< z80->A<< " B: "<< z80->B<< " C: "<<z80->C << " D: "<<z80->D <<endl;
+	// }
 
 	app->exec();
 	return 0;
