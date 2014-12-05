@@ -213,19 +213,35 @@ int main(int argc, char** argv)
     vidfile >> palette[3];
 
     //PART 2
-    renderScreen();
-
+  	
     //create new processor
     //PART1
-	// Z80* z80 = new Z80(memoryread,memorywrite);
-	// z80->reset();
-	// //  z80->PC=0;
-	// cout<< "A: "<< z80->A<< " B: "<< z80->B<< " C: "<<z80->C << " D: "<<z80->D <<endl;
-	// while(!z80->halted){
-	// 	//run instructions
-	// 	z80->doInstruction();
-	// 	cout<<"A: "<< z80->A<< " B: "<< z80->B<< " C: "<<z80->C << " D: "<<z80->D <<endl;
-	// }
+	Z80* z80 = new Z80(memoryread,memorywrite);
+	z80->reset();
+	while(true){
+		if(!z80->halted) // if not halted, do an instruction
+			z80->doInstruction();
+
+		// if(z80->interrupt_deferred>0) //check for and handle interrupts
+	 //    { 
+	 //        z80->interrupt_deferred--; 
+	 //        if(z80->interrupt_deferred==1) 
+	 //        { 
+	 //                z80->interrupt_deferred=0; 
+	 //                z80->FLAG_I=1; 
+	 //        } 
+	 //    } 
+	 //    z80->checkForInterrupts();
+
+	    //figure out the screen position and set the video mode
+
+	    //redraw the screen
+	    renderScreen();
+
+	    if(z80->halted)
+	    	break;
+	}
+
 
 	app->exec();
 	return 0;
