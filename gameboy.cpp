@@ -64,15 +64,15 @@ unsigned char getVideoState() {
 
 unsigned char memoryread(int address)
 {
-	if(address > 0 && address < 0x3FFF)
+	if(address >= 0 && address <= 0x3FFF)
 		return rom[address];
-	else if(address > 0x4000 && address < 0x7FFF)
+	else if(address >= 0x4000 && address <= 0x7FFF)
 		return rom [romOffset+address%0x4000];
-	else if(address > 0x8000 && address < 0x9FFF)
+	else if(address >= 0x8000 && address <= 0x9FFF)
 		return graphicsRAM[address%0x2000];
-	else if(address > 0xC000 && address < 0xDFFF)
+	else if(address >= 0xC000 && address <= 0xDFFF)
 		return workingRAM[address%0x2000];
-	else if(address > 0xFF80 && address < 0xFFFF)
+	else if(address >= 0xFF80 && address <= 0xFFFF)
 		return page0RAM[address% 0x80];
 	else if(address == 0xFF00)
 		return getKey();
@@ -98,15 +98,15 @@ unsigned char memoryread(int address)
 
 void memorywrite(int address, unsigned char value)
 {
-	if(address > 0 && address < 0x3FFF)
+	if(address >= 0 && address <= 0x3FFF)
 		setRomMode(address,value);
 	
 
-	else if(address > 0x8000 && address < 0x9FFF)
+	else if(address >= 0x8000 && address <= 0x9FFF)
 		graphicsRAM[address%0x2000] = value;
-	else if(address > 0xC000 && address < 0xDFFF)
+	else if(address >= 0xC000 && address <= 0xDFFF)
 		workingRAM[address%0x2000] = value;
-	else if(address > 0xFF80 && address < 0xFFFF)
+	else if(address >= 0xFF80 && address <= 0xFFFF)
 		page0RAM[address% 0x80] = value;
 	else if(address == 0xFF00)
 		keyboardColumn = value;
@@ -213,34 +213,54 @@ int main(int argc, char** argv)
     vidfile >> palette[3];
 
     //PART 2
+  	renderScreen();
   	
     //create new processor
     //PART1
-	Z80* z80 = new Z80(memoryread,memorywrite);
-	z80->reset();
-	while(true){
-		if(!z80->halted) // if not halted, do an instruction
-			z80->doInstruction();
+	// Z80* z80 = new Z80(memoryread,memorywrite);
+	// z80->reset();
+	// while(true){
+	// 	if(!z80->halted) // if not halted, do an instruction
+	// 		z80->doInstruction();
 
-		// if(z80->interrupt_deferred>0) //check for and handle interrupts
-	 //    { 
-	 //        z80->interrupt_deferred--; 
-	 //        if(z80->interrupt_deferred==1) 
-	 //        { 
-	 //                z80->interrupt_deferred=0; 
-	 //                z80->FLAG_I=1; 
-	 //        } 
-	 //    } 
-	 //    z80->checkForInterrupts();
+	// 	if(z80->interrupt_deferred>0) //check for and handle interrupts
+	//     { 
+	//         z80->interrupt_deferred--; 
+	//         if(z80->interrupt_deferred==1) 
+	//         { 
+	//                 z80->interrupt_deferred=0; 
+	//                 z80->FLAG_I=1; 
+	//         } 
+	//     } 
+	//     z80->checkForInterrupts();
 
-	    //figure out the screen position and set the video mode
+	//     //figure out the screen position and set the video mode
 
-	    //redraw the screen
-	    renderScreen();
+	//     int horizontal = (int) ((totalInstructions+1)%61); //(int) ((instructions+1)%61)
+	//     if(line>=145)
+	//     	gpuMode=VBLANK;
+	//     else if(horizontal <= 30)
+	//     	gpuMode=HBLANK;
+	//     else if(horizontal>=31 && horizontal <=40)
+	//     	gpuMode=SPRITE;
+	//     else
+	//     	gpuMode=VRAM;
 
-	    if(z80->halted)
-	    	break;
-	}
+	//     if (horizontal == 0){
+	//     	line++;
+	//     	if(line == 144)
+	//     		z80->throwInterrupt(1);
+	//     	if(line%153 == cmpline && (videostate&0x40) != 0)
+	//     		z80->throwInterrupt(2);
+	//     	if (line == 153){
+	//     		line = 0;
+	//     		renderScreen(); //redraw the screen
+	//     	}
+	//     }
+	//     totalInstructions++;
+	//     if(z80->halted)
+	//     	break;
+	// }
 
 
 	app->exec();
