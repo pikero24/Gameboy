@@ -14,7 +14,6 @@ char* rom; //[]={0x06,0x06,0x3e,0x00,0x80,0x05,0xc2,0x04,0x00,0x76};
 
 extern QApplication* app;
 
-//Global Variables to hold memory
 unsigned char graphicsRAM[8192];
 int palette[4];
 int tileset, tilemap, scrollx, scrolly;
@@ -34,7 +33,7 @@ unsigned char getKey() {
 	return 0xf; 
 }
 
-void setRomMode(int address, unsigned char b) {}
+void setRomMode(int address, unsigned char b){}
 
 void setControlByte(unsigned char b) { 
     tilemap=(b&8)!=0?1:0;
@@ -99,35 +98,34 @@ unsigned char memoryread(int address)
 
 void memorywrite(int address, unsigned char value)
 {
-	// if(address > 0 && address < 0x3FFF)
-	// 	setRomMode(address);
+	if(address > 0 && address < 0x3FFF)
+		setRomMode(address,value);
 	
 
-	// else if(address > 0x8000 && address < 0x9FFF)
-	// 	graphicsRAM[address%0x2000] = value;
-	// else if(address > 0xC000 && address < 0xDFFF)
-	// 	workingRAM[address%0x2000] = value;
-	// else if(address > 0xFF80 && address < 0xFFFF)
-	// 	page0RAM[address% 0x80] = value;
-	// else if(address == 0xFF00)
-	// 	return getKey();
-	// else if(address == 0xFF40)
-	// 	return getKey();
-	// else if(address == 0xFF41)
-	// 	return getVideoState();
-	// else if(address == 0xFF42)
-	// 	return scrolly;
-	// else if(address == 0xFF43)
-	// 	return scrollx;
-	// else if(address == 0xFF44)
-	// 	return line;
-	// else if(address == 0xFF45)
-	// 	return cmpline;
-	// else if(address == 0xFF47)
-	// 	return getKey();
-	// else
-	// 	return 0;
-
+	else if(address > 0x8000 && address < 0x9FFF)
+		graphicsRAM[address%0x2000] = value;
+	else if(address > 0xC000 && address < 0xDFFF)
+		workingRAM[address%0x2000] = value;
+	else if(address > 0xFF80 && address < 0xFFFF)
+		page0RAM[address% 0x80] = value;
+	else if(address == 0xFF00)
+		keyboardColumn = value;
+	else if(address == 0xFF40)
+		setControlByte(value);
+	else if(address == 0xFF41)
+		videostate = value;
+	else if(address == 0xFF42)
+		scrolly = value;
+	else if(address == 0xFF43)
+		scrollx = value;
+	else if(address == 0xFF44)
+		line = value;
+	else if(address == 0xFF45)
+		cmpline = value;
+	else if(address == 0xFF47)
+		setPalette(value);
+	else
+		cout<<value <<" is outside of memorywrite spefications."<<endl;
 }
 
 
