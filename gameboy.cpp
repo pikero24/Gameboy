@@ -136,6 +136,11 @@ void renderScreen(){
     	{
     		//apply scroll
     		int x=row,y=column;
+
+    		// x = x + scrollx;
+    		// y = y + scrolly;
+    		//THIS ERRORS FOR SOME REASON Bus error: 10
+
 		    //determine which tile pixel belongs to
 		    int tilex = x/8, tiley = y/8;
 		    //find tileposition in 1D array
@@ -149,9 +154,8 @@ void renderScreen(){
 		    else { //tilemap0
 		    	tileindex = graphicsRAM[0x1800+tileposition];
 		    	if (tileindex >= 128)
-		    		tileaddress = tileindex-256;
-		    	else
-		    		tileaddress = tileindex * 16 + 0x1000;
+		    		tileindex -= 256;
+		    	tileaddress = tileindex * 16 + 0x1000;
 		    }
 
 		    //get which pixel is in the tile
@@ -161,8 +165,11 @@ void renderScreen(){
 		    int row1 = graphicsRAM[tileaddress + yoffset*2 + 1];
 
 		    //Binary math to get binary indexed color info across both bytes
-		    int row0shifted = row0>>(7-xoffset), row0capturepixel = row0shifted & 1;
-		    int row1shifted = row1>>(7-xoffset), row1capturepixel = row1shifted & 1;
+		    int row0shifted = row0>>(7-xoffset);
+		    int row0capturepixel = row0shifted & 1;
+
+		    int row1shifted = row1>>(7-xoffset);
+		    int row1capturepixel = row1shifted & 1;
 
 		    //combine byte info to get color
 		    int pixel = row1capturepixel * 2 + row0capturepixel;
@@ -214,53 +221,55 @@ int main(int argc, char** argv)
 
     //PART 2
   	renderScreen();
-  	
+
     //create new processor
     //PART1
-	// Z80* z80 = new Z80(memoryread,memorywrite);
-	// z80->reset();
-	// while(true){
-	// 	if(!z80->halted) // if not halted, do an instruction
-	// 		z80->doInstruction();
+	Z80* z80 = new Z80(memoryread,memorywrite);
+	z80->reset();
+	while(!z80->halted){
+		if(!z80->halted) // if not halted, do an instruction
+			z80->doInstruction();
 
-	// 	if(z80->interrupt_deferred>0) //check for and handle interrupts
-	//     { 
-	//         z80->interrupt_deferred--; 
-	//         if(z80->interrupt_deferred==1) 
-	//         { 
-	//                 z80->interrupt_deferred=0; 
-	//                 z80->FLAG_I=1; 
-	//         } 
-	//     } 
-	//     z80->checkForInterrupts();
+		if(z80->interrupt_deferred>0) //check for and handle interrupts
+	    { 
+	        z80->interrupt_deferred--; 
+	        if(z80->interrupt_deferred==1) 
+	        { 
+	                z80->interrupt_deferred=0; 
+	                z80->FLAG_I=1; 
+	        } 
+	    } 
+	    z80->checkForInterrupts();
 
-	//     //figure out the screen position and set the video mode
+	    //figure out the screen position and set the video mode
 
-	//     int horizontal = (int) ((totalInstructions+1)%61); //(int) ((instructions+1)%61)
-	//     if(line>=145)
-	//     	gpuMode=VBLANK;
-	//     else if(horizontal <= 30)
-	//     	gpuMode=HBLANK;
-	//     else if(horizontal>=31 && horizontal <=40)
-	//     	gpuMode=SPRITE;
-	//     else
-	//     	gpuMode=VRAM;
+	    int horizontal = (int) ((totalInstructions+1)%61); //(int) ((instructions+1)%61)
+	    if(line>=145)
+	    	gpuMode=VBLANK;
+	    else if(horizontal <= 30)
+	    	gpuMode=HBLANK;
+	    else if(horizontal>=31 && horizontal <=40)
+	    	gpuMode=SPRITE;
+	    else
+	    	gpuMode=VRAM;
 
-	//     if (horizontal == 0){
-	//     	line++;
-	//     	if(line == 144)
-	//     		z80->throwInterrupt(1);
-	//     	if(line%153 == cmpline && (videostate&0x40) != 0)
-	//     		z80->throwInterrupt(2);
-	//     	if (line == 153){
-	//     		line = 0;
-	//     		renderScreen(); //redraw the screen
-	//     	}
-	//     }
-	//     totalInstructions++;
-	//     if(z80->halted)
-	//     	break;
-	// }
+	    if (horizontal == 0){
+	    	line++;
+	    	if(line == 144)
+	    		z80->throwInterrupt(1);
+	    	if(line%153 == cmpline && (videostate&0x40) != 0)
+	    		z80->throwInterrupt(2);
+	    	if (line == 153){
+	    		line = 0;
+	    		renderScreen(); //redraw the screen
+	    	}
+	    }
+	    
+	    if(z80->halted)
+	    	break;
+
+	    totalInstructions++;
+	}
 
 
 	app->exec();
