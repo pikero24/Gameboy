@@ -12,20 +12,124 @@ using namespace std;
 
 char* rom; //[]={0x06,0x06,0x3e,0x00,0x80,0x05,0xc2,0x04,0x00,0x76};
 
-unsigned char memoryread(int address)
-{
-	return rom[address];
-}
-
-void memorywrite(int address, unsigned char value)
-{}
-
 extern QApplication* app;
 
 //Global Variables to hold memory
 unsigned char graphicsRAM[8192];
 int palette[4];
 int tileset, tilemap, scrollx, scrolly;
+
+int HBLANK=0, VBLANK=1, SPRITE=2, VRAM=3;
+unsigned char workingRAM[0x2000];
+
+unsigned char page0RAM[0x80];
+
+int line=0, cmpline=0, videostate=0, keyboardColumn=0, horizontal=0;
+int gpuMode=HBLANK;
+int romOffset = 0x4000;
+long totalInstructions=0;
+
+
+unsigned char getKey() {
+	return 0xf; 
+}
+
+void setRomMode(int address, unsigned char b) {}
+
+void setControlByte(unsigned char b) { 
+    tilemap=(b&8)!=0?1:0;
+
+    tileset=(b&16)!=0?1:0;
+ }
+
+void setPalette(unsigned char b) { 
+	palette[0]=b&3;
+	palette[1]=(b>>2)&3;
+	palette[2]=(b>>4)&3;
+	palette[3]=(b>>6)&3;
+}
+
+unsigned char getVideoState() {
+        int by=0;
+
+        if(line==cmpline) by|=4;
+
+        if(gpuMode==VBLANK) by|=1;
+
+        if(gpuMode==SPRITE) by|=2;
+
+        if(gpuMode==VRAM) by|=3;
+
+        return (unsigned char)((by|(videostate&0xf8))&0xff);
+ }
+
+unsigned char memoryread(int address)
+{
+	if(address > 0 && address < 0x3FFF)
+		return rom[address];
+	else if(address > 0x4000 && address < 0x7FFF)
+		return rom [romOffset+address%0x4000];
+	else if(address > 0x8000 && address < 0x9FFF)
+		return graphicsRAM[address%0x2000];
+	else if(address > 0xC000 && address < 0xDFFF)
+		return workingRAM[address%0x2000];
+	else if(address > 0xFF80 && address < 0xFFFF)
+		return page0RAM[address% 0x80];
+	else if(address == 0xFF00)
+		return getKey();
+
+
+	else if(address == 0xFF41)
+		return getVideoState();
+	else if(address == 0xFF42)
+		return scrolly;
+	else if(address == 0xFF43)
+		return scrollx;
+	else if(address == 0xFF44)
+		return line;
+	else if(address == 0xFF45)
+		return cmpline;
+
+
+	else
+		return 0;
+
+	//return rom[address];
+}
+
+void memorywrite(int address, unsigned char value)
+{
+	// if(address > 0 && address < 0x3FFF)
+	// 	setRomMode(address);
+	
+
+	// else if(address > 0x8000 && address < 0x9FFF)
+	// 	graphicsRAM[address%0x2000] = value;
+	// else if(address > 0xC000 && address < 0xDFFF)
+	// 	workingRAM[address%0x2000] = value;
+	// else if(address > 0xFF80 && address < 0xFFFF)
+	// 	page0RAM[address% 0x80] = value;
+	// else if(address == 0xFF00)
+	// 	return getKey();
+	// else if(address == 0xFF40)
+	// 	return getKey();
+	// else if(address == 0xFF41)
+	// 	return getVideoState();
+	// else if(address == 0xFF42)
+	// 	return scrolly;
+	// else if(address == 0xFF43)
+	// 	return scrollx;
+	// else if(address == 0xFF44)
+	// 	return line;
+	// else if(address == 0xFF45)
+	// 	return cmpline;
+	// else if(address == 0xFF47)
+	// 	return getKey();
+	// else
+	// 	return 0;
+
+}
+
 
 void renderScreen(){
 	 for (int row = 0; row < 144 ; row++)
@@ -64,6 +168,10 @@ void renderScreen(){
     }
     onFrame();
 }
+
+
+
+
 
 int main(int argc, char** argv)
 {
