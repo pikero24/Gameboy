@@ -27,6 +27,43 @@ unsigned char graphicsRAM[8192];
 int palette[4];
 int tileset, tilemap, scrollx, scrolly;
 
+void renderScreen(){
+	 for (int row = 0; row < 144 ; row++)
+    {
+    	for (int column = 0; column < 160; column++)
+    	{
+    		int x=row,y=column;
+		    //scrollx = 10, scrolly = 10; //some ammount
+		    int tilex = x/8, tiley = y/8;
+		    int tileposition = tiley * 32 + tilex;
+		    int tileindex, tileaddress;
+		    if (tilemap){ //tilemap1
+		    	tileindex = graphicsRAM[0x1c00+tileposition];
+		    	tileaddress = tileindex * 16;
+		    }
+		    else { //tilemap0
+		    	tileindex = graphicsRAM[0x1800+tileposition];
+		    	if (tileindex >= 128)
+		    		tileaddress = tileindex-256;
+		    	else
+		    		tileaddress = tileindex * 16 + 0x1000;
+		    }
+
+		    int xoffset =  x%8, yoffset = y%8; //should use &
+		    int row0 = graphicsRAM[tileaddress + yoffset*2];
+		    int row1 = graphicsRAM[tileaddress + yoffset*2 + 1];
+
+		    int row0shifted = row0>>(7-xoffset), row0capturepixel = row0shifted & 1;
+		    int row1shifted = row1>>(7-xoffset), row1capturepixel = row1shifted & 1;
+
+		    int pixel = row1capturepixel * 2 + row0capturepixel;
+		    int color = palette[pixel];
+
+		    updateSquare(x,y,color);
+    	}
+    }
+    onFrame();
+}
 
 int main(int argc, char** argv)
 {
@@ -61,30 +98,8 @@ int main(int argc, char** argv)
     vidfile >> palette[2];
     vidfile >> palette[3];
 
-    //for game boy screen pixel 1x1
-    int x=1,y=1;
-    scrollx = 10, scrolly = 10; //some ammount
-    int tilex = x/8, tiley = y/8;
-    int tileposition = tiley * 32 + tilex;
-    int tileindex, tileaddress;
-    if (tilemap){ //tilemap1
-    	tileindex = graphicsRAM[0x1c00+tileposition];
-    	tileaddress = tileindex * 16;
-    }
-    else { //tilemap0
-    	tileindex = graphicsRAM[0x1800+tileposition];
-    	if (tileindex >= 128)
-    		tileaddress = tileindex-256;
-    	else
-    		tileaddress = tileindex * 16 + 0x1000;
-    }
-
-    int xoffset =  x%8, yoffset = y%8; //should use &
-    unsigned char row0 = graphicsRAM[tileaddress + yoffset*2];
-    unsigned char row1 = graphicsRAM[tileaddress + yoffset*2 + 1];
-
-
-
+    //PART 2
+    renderScreen();
 
     //create new processor
     //PART1
