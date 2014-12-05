@@ -134,10 +134,13 @@ void renderScreen(){
     {
     	for (int column = 0; column < 160; column++)
     	{
+    		//apply scroll
     		int x=row,y=column;
-		    //scrollx = 10, scrolly = 10; //some ammount
+		    //determine which tile pixel belongs to
 		    int tilex = x/8, tiley = y/8;
+		    //find tileposition in 1D array
 		    int tileposition = tiley * 32 + tilex;
+
 		    int tileindex, tileaddress;
 		    if (tilemap){ //tilemap1
 		    	tileindex = graphicsRAM[0x1c00+tileposition];
@@ -151,14 +154,19 @@ void renderScreen(){
 		    		tileaddress = tileindex * 16 + 0x1000;
 		    }
 
+		    //get which pixel is in the tile
 		    int xoffset =  x%8, yoffset = y%8; //should use &
+		    //get the two bytes for each row in tile
 		    int row0 = graphicsRAM[tileaddress + yoffset*2];
 		    int row1 = graphicsRAM[tileaddress + yoffset*2 + 1];
 
+		    //Binary math to get binary indexed color info across both bytes
 		    int row0shifted = row0>>(7-xoffset), row0capturepixel = row0shifted & 1;
 		    int row1shifted = row1>>(7-xoffset), row1capturepixel = row1shifted & 1;
 
+		    //combine byte info to get color
 		    int pixel = row1capturepixel * 2 + row0capturepixel;
+		    //get color based on palette
 		    int color = palette[pixel];
 
 		    updateSquare(x,y,color);
