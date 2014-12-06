@@ -72,11 +72,10 @@ unsigned char memoryread(int address)
 		return graphicsRAM[address%0x2000];
 	else if(address >= 0xC000 && address <= 0xDFFF)
 		return workingRAM[address%0x2000];
-	
+	else if(address >= 0xFF80 && address <= 0xFFFF)
+		return page0RAM[address% 0x80];
 	else if(address == 0xFF00)
 		return getKey();
-
-
 	else if(address == 0xFF41)
 		return getVideoState();
 	else if(address == 0xFF42)
@@ -87,9 +86,6 @@ unsigned char memoryread(int address)
 		return line;
 	else if(address == 0xFF45)
 		return cmpline;
-
-	else if(address >= 0xFF80 && address <= 0xFFFF)
-		return page0RAM[address% 0x80];
 
 
 	else
@@ -132,12 +128,13 @@ void memorywrite(int address, unsigned char value)
 
 
 void renderScreen(){
-	 for (int row = 0; row < 144 ; row++)
+	for (int row = 0; row < 144 ; row++)
     {
     	for (int column = 0; column < 160; column++)
     	{
     		//apply scroll
-    		int x=row,y=column;
+    		//SWAPPED X and Y
+    		int y=row,x=column;
 
     		// x = (x + scrollx)&255;
     		// y = (y + scrolly)&255;
@@ -150,12 +147,15 @@ void renderScreen(){
 		    int tileposition = tiley * 32 + tilex;
 
 		    int tileindex, tileaddress;
-		    if (tilemap){ //tilemap1
+
+		    if (tilemap)//tilemap1
 		    	tileindex = graphicsRAM[0x1c00+tileposition];
-		    	tileaddress = tileindex * 16;
-		    }
-		    else { //tilemap0
+		    else //tilemap0
 		    	tileindex = graphicsRAM[0x1800+tileposition];
+		    
+		    if (tileset) 
+		    	tileaddress = tileindex * 16;
+		    else { 
 		    	if (tileindex >= 128)
 		    		tileindex -= 256;
 		    	tileaddress = tileindex * 16 + 0x1000;
@@ -195,7 +195,7 @@ int main(int argc, char** argv)
 
 	//Load the rom from file
 	//PART1
-	ifstream romfile("ttt.gb", ios::in|ios::binary|ios::ate);
+	ifstream romfile("TETRIS.GB", ios::in|ios::binary|ios::ate);
     streampos size = romfile.tellg();
     rom = new char[size]; //ERROR
     int romSize=size;
@@ -205,25 +205,25 @@ int main(int argc, char** argv)
 
     //Read screendump into graphicsRAM
     //PART2
-    int n;
-	ifstream vidfile("screendump.txt",ios::in);
-	for(int i=0; i<8192; i++){
-		int n;
-		vidfile>>n;
-		graphicsRAM[i]=(unsigned char)n;
-	}
-    vidfile >> tileset;
-    vidfile >> tilemap;
-    vidfile >> scrollx;
-    vidfile >> scrolly;
+ //    int n;
+	// ifstream vidfile("screendump.txt",ios::in);
+	// for(int i=0; i<8192; i++){
+	// 	int n;
+	// 	vidfile>>n;
+	// 	graphicsRAM[i]=(unsigned char)n;
+	// }
+ //    vidfile >> tileset;
+ //    vidfile >> tilemap;
+ //    vidfile >> scrollx;
+ //    vidfile >> scrolly;
 
-    vidfile >> palette[0];
-    vidfile >> palette[1];
-    vidfile >> palette[2];
-    vidfile >> palette[3];
+ //    vidfile >> palette[0];
+ //    vidfile >> palette[1];
+ //    vidfile >> palette[2];
+ //    vidfile >> palette[3];
 
     //PART 2
-  	renderScreen();
+  	// renderScreen();
  
     //create new processor
     //PART1
@@ -268,12 +268,7 @@ int main(int argc, char** argv)
 	    		line = 0;
 	    		renderScreen(); //redraw the screen
 	    	}
-	    }
-	    
-	    if(z80->halted)
-	    	break;
-
-	    
+	    }	    
 	}
 
 
