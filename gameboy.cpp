@@ -137,8 +137,8 @@ void renderScreen(){
     		//apply scroll
     		int x=row,y=column;
 
-    		// x = x + scrollx;
-    		// y = y + scrolly;
+    		// x = (x + scrollx)&255;
+    		// y = (y + scrolly)&255;
     		//THIS ERRORS FOR SOME REASON Bus error: 10
 
 		    //determine which tile pixel belongs to
