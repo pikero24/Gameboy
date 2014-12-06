@@ -142,7 +142,8 @@ void renderScreen(){
     		//THIS ERRORS FOR SOME REASON Bus error: 10
 
 		    //determine which tile pixel belongs to
-		    int tilex = x/8, tiley = y/8;
+		    // int tilex = x/8, tiley = y/8;
+		    int tilex = ( (x + scrollx)&255 )/8, tiley = ( (y + scrolly)&255 )/8;
 		    //find tileposition in 1D array
 		    int tileposition = tiley * 32 + tilex;
 
