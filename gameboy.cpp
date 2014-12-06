@@ -72,8 +72,7 @@ unsigned char memoryread(int address)
 		return graphicsRAM[address%0x2000];
 	else if(address >= 0xC000 && address <= 0xDFFF)
 		return workingRAM[address%0x2000];
-	else if(address >= 0xFF80 && address <= 0xFFFF)
-		return page0RAM[address% 0x80];
+	
 	else if(address == 0xFF00)
 		return getKey();
 
@@ -89,6 +88,9 @@ unsigned char memoryread(int address)
 	else if(address == 0xFF45)
 		return cmpline;
 
+	else if(address >= 0xFF80 && address <= 0xFFFF)
+		return page0RAM[address% 0x80];
+
 
 	else
 		return 0;
@@ -100,14 +102,12 @@ void memorywrite(int address, unsigned char value)
 {
 	if(address >= 0 && address <= 0x3FFF)
 		setRomMode(address,value);
-	
-
+	else if(address >= 0x4000 && address <= 0x7FFF)
+		cout<<value <<" is outside of memorywrite spefications. (x4000-x7FFF)"<<endl;
 	else if(address >= 0x8000 && address <= 0x9FFF)
 		graphicsRAM[address%0x2000] = value;
 	else if(address >= 0xC000 && address <= 0xDFFF)
 		workingRAM[address%0x2000] = value;
-	else if(address >= 0xFF80 && address <= 0xFFFF)
-		page0RAM[address% 0x80] = value;
 	else if(address == 0xFF00)
 		keyboardColumn = value;
 	else if(address == 0xFF40)
@@ -124,6 +124,8 @@ void memorywrite(int address, unsigned char value)
 		cmpline = value;
 	else if(address == 0xFF47)
 		setPalette(value);
+	else if(address >= 0xFF80 && address <= 0xFFFF)
+		page0RAM[address% 0x80] = value;
 	else
 		cout<<value <<" is outside of memorywrite spefications."<<endl;
 }
@@ -139,7 +141,7 @@ void renderScreen(){
 
     		// x = (x + scrollx)&255;
     		// y = (y + scrolly)&255;
-    		//THIS ERRORS FOR SOME REASON Bus error: 10
+    		//THIS ERRORS FOR SOME REASON Bus error: 10 (MOVED DOWN!)
 
 		    //determine which tile pixel belongs to
 		    // int tilex = x/8, tiley = y/8;
@@ -193,7 +195,7 @@ int main(int argc, char** argv)
 
 	//Load the rom from file
 	//PART1
-	ifstream romfile("testrom.gb", ios::in|ios::binary|ios::ate);
+	ifstream romfile("ttt.gb", ios::in|ios::binary|ios::ate);
     streampos size = romfile.tellg();
     rom = new char[size]; //ERROR
     int romSize=size;
@@ -222,12 +224,12 @@ int main(int argc, char** argv)
 
     //PART 2
   	renderScreen();
-
+ 
     //create new processor
     //PART1
 	Z80* z80 = new Z80(memoryread,memorywrite);
 	z80->reset();
-	while(!z80->halted){
+	while(true){
 		if(!z80->halted) // if not halted, do an instruction
 			z80->doInstruction();
 
@@ -241,6 +243,8 @@ int main(int argc, char** argv)
 	        } 
 	    } 
 	    z80->checkForInterrupts();
+
+	    totalInstructions++;
 
 	    //figure out the screen position and set the video mode
 
@@ -269,10 +273,10 @@ int main(int argc, char** argv)
 	    if(z80->halted)
 	    	break;
 
-	    totalInstructions++;
+	    
 	}
 
 
-	app->exec();
+	// app->exec();
 	return 0;
 }
