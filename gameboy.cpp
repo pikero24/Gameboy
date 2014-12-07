@@ -123,7 +123,7 @@ void memorywrite(int address, unsigned char value)
 	else if(address >= 0xFF80 && address <= 0xFFFF)
 		page0RAM[address% 0x80] = value;
 	else
-		cout<<value <<" is outside of memorywrite spefications."<<endl;
+		cout<< value <<" is outside of memorywrite spefications. (POSSIBLY SOUND)"<<endl;
 }
 
 
@@ -195,7 +195,7 @@ int main(int argc, char** argv)
 
 	//Load the rom from file
 	//PART1
-	ifstream romfile("TETRIS.GB", ios::in|ios::binary|ios::ate);
+	ifstream romfile("opus5.gb", ios::in|ios::binary|ios::ate);
     streampos size = romfile.tellg();
     rom = new char[size]; //ERROR
     int romSize=size;
